@@ -1,0 +1,72 @@
+{
+	"name": "@vyke/taggy",
+	"type": "module",
+	"version": "0.0.7",
+	"description": "A simple and small library for creating and manipulating HTML elements in a declarative way.",
+	"author": "Jose Albizures <jose@albizures.com> (https://albizures.com/)",
+	"license": "MIT",
+	"keywords": [],
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.cjs"
+		},
+		"./reporters": {
+			"import": "./dist/reporters/basic.mjs",
+			"require": "./dist/reporters/basic.cjs"
+		}
+	},
+	"main": "./dist/index.cjs",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"dev:unit": "vitest",
+		"dev:integration": "server-test dev:start 'http://localhost:4321' dev:integration:open",
+		"dev:integration:open": "cypress open",
+		"dev:start": "astro dev",
+		"build": "run-s build:*",
+		"build:dist": "unbuild",
+		"build:docs": "tsdocs",
+		"test": "run-s test:integration test:types test:lint test:jsr",
+		"test:use": "knip",
+		"test:lint": "eslint .",
+		"test:unit": "vitest run",
+		"test:integration": "server-test dev:start 'http://localhost:4321' test:integration:run",
+		"test:integration:run": "cypress run",
+		"test:jsr": "jsr publish --dry-run",
+		"test:types": "tsc --noEmit",
+		"release:bump": "standard-version -t v",
+		"release:jsr-sync": "jsr-sync --section=exports",
+		"release:publish": "pnpm publish --access public",
+		"release:push-tags": "git push --follow-tags origin main",
+		"release": "run-s test build release:jsr-sync release:bump release:publish release:push-tags"
+	},
+	"dependencies": {
+		"alien-signals": "^1.0.1"
+	},
+	"devDependencies": {
+		"@antfu/eslint-config": "^4.1.0",
+		"@vyke/jsr-sync": "^0.0.4",
+		"@vyke/tsdocs": "^0.0.8",
+		"astro": "^5.1.10",
+		"cypress": "^14.0.0",
+		"eslint": "^9.19.0",
+		"eslint-plugin-astro": "^1.3.1",
+		"eslint-plugin-format": "^1.0.1",
+		"jsr": "^0.13.3",
+		"knip": "^5.43.6",
+		"npm-run-all": "^4.1.5",
+		"standard-version": "^9.5.0",
+		"start-server-and-test": "^2.0.10",
+		"typescript": "^5.7.3",
+		"unbuild": "^3.3.1",
+		"vitest": "^3.0.4"
+	},
+	"standard-version": {
+		"skip": {
+			"changelog": true
+		}
+	}
+}

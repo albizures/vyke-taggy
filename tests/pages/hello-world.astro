@@ -1,0 +1,36 @@
+---
+import Page from '../Page.astro';
+---
+
+<Page>
+
+</Page>
+
+<script>
+import { $, Html, render } from '../../src'
+import { signal, syncValue } from '../../src/signals'
+
+const { div, h1, input, label } = Html
+
+function mount() {
+	document.addEventListener('DOMContentLoaded', () => {
+		render(document.body, HelloWorld())
+	})
+}
+
+function HelloWorld() {
+	const name = signal('world')
+
+	return $(div(), [
+		$(h1(), ['Hello, ', name, '!']),
+		$(label(), ['Name: ',
+			input({
+				type: 'text',
+				...syncValue(name),
+			}),
+		]),
+	])
+}
+
+mount()
+</script>

@@ -1,0 +1,9 @@
+{
+	"name": "@vyke/taggy",
+	"version": "0.0.1",
+	"license": "MIT",
+	"exports": {
+		".": "./src/index.ts",
+		"./signals": "./src/signals/index.ts"
+	}
+}

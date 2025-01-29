@@ -1,0 +1,39 @@
+---
+import Page from '../Page.astro';
+---
+
+<Page>
+
+</Page>
+
+<script>
+import { $, Html, render, when } from '../../src'
+import { signal } from '../../src/signals'
+
+const { div, button, span } = Html
+
+function mount() {
+	document.addEventListener('DOMContentLoaded', () => {
+		render(document.body, ConditionalRendering())
+	})
+}
+
+function ConditionalRendering() {
+	const status = signal<'off' | 'on'>('off')
+
+	return $(div(), [
+		$(button({
+			className: 'border-red-500 border',
+			onclick() {
+				status(status() === 'off' ? 'on' : 'off')
+			},
+		}), ['click me']),
+		when(status,
+			['on', () => $(span(), ['on'])],
+			['off', () => $(span(), ['off'])],
+		),
+	])
+}
+
+mount()
+</script>
