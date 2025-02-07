@@ -23,7 +23,7 @@ export type Props<TTag extends Element> = {
 class Renderer {
 	constructor(
 		readonly root: HTMLElement,
-		readonly setter = createPropSetter(),
+		readonly setter: PropSetter = createPropSetter(),
 	) {}
 
 	render(handler: TagHandler<Element>) {
