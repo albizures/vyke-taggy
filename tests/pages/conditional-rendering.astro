@@ -7,14 +7,15 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { $, Html, render, when } from '../../src'
+import { $, createRenderer, Html, when } from '../../src'
 import { signal } from '../../src/signals'
 
 const { div, button, span } = Html
 
 function mount() {
 	document.addEventListener('DOMContentLoaded', () => {
-		render(document.body, ConditionalRendering())
+		const renderer = createRenderer(document.body)
+		renderer.render(ConditionalRendering())
 	})
 }
 

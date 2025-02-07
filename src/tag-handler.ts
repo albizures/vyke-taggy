@@ -20,6 +20,22 @@ export type Props<TTag extends Element> = {
 	[K in keyof TTag]?: TTag[K] | ReadSignal<TTag[K]>
 }
 
+class Renderer {
+	constructor(
+		readonly root: HTMLElement,
+		readonly setter = createPropSetter(),
+	) {}
+
+	render(handler: TagHandler<Element>) {
+		const element = buildHandler(handler, this.setter)
+		this.root.append(element)
+	}
+}
+
+export function createRenderer(root: HTMLElement) {
+	return new Renderer(root)
+}
+
 export class TagHandler<TTag extends Element> {
 	children: Array<TagChild> = []
 	constructor(
@@ -28,100 +44,125 @@ export class TagHandler<TTag extends Element> {
 	) {}
 }
 
+const COMMENT_TYPES = {
+	CONDITIONAL: 'cond',
+	LIST: 'list',
+	SIGNAL: 'signal',
+	REF_PREFIX: 'ref:',
+} as const
+
 function createCommentRef(label: string) {
-	return document.createComment(`ref:${label}`)
+	return document.createComment(`${COMMENT_TYPES.REF_PREFIX}${label}`)
 }
 
-export function buildChild(tag: TagChild): Array<ChildNode> {
-	if (tag instanceof TagHandler) {
-		return [buildHandler(tag)]
+/**
+ * Remove nodes between two comments
+ */
+function removeNodesBetween(startRef: ChildNode, endRef: ChildNode) {
+	let ref = startRef.nextSibling
+	while (ref !== endRef && ref) {
+		const next = ref.nextSibling
+		ref.remove()
+		ref = next
 	}
-	else if (tag instanceof Conditional) {
-		let startRef: ChildNode = createCommentRef('cond')
-		let endRef: ChildNode = createCommentRef('cond')
-		const value = match(tag)
-		const children: Array<ChildNode> = []
+}
 
-		effect(() => {
-			const results = buildChild(value())
+/**
+ * Build a conditional child
+ */
+function buildConditionalChild(tag: Conditional<unknown>, propSetter: PropSetter): Array<ChildNode> {
+	let startRef: ChildNode = createCommentRef(COMMENT_TYPES.CONDITIONAL)
+	let endRef: ChildNode = createCommentRef(COMMENT_TYPES.CONDITIONAL)
+	const value = match(tag)
+	const children: Array<ChildNode> = []
 
-			// remove old children until the endRef
-			let ref = startRef.nextSibling
-			while (ref !== endRef && ref) {
-				const next = ref.nextSibling
-				ref.remove()
-				ref = next
-			}
+	effect(() => {
+		const results = buildChild(value(), propSetter)
 
-			ref = startRef
+		removeNodesBetween(startRef, endRef)
+
+		let ref = startRef
+		for (const result of results) {
+			ref.after(result)
+			ref = result
+			children.push(result)
+		}
+	})
+
+	return [startRef, ...children, endRef]
+}
+
+/**
+ * Build a list of children
+ */
+function buildListChild(tag: List<unknown>, propSetter: PropSetter): Array<ChildNode> {
+	const startRef = createCommentRef(COMMENT_TYPES.LIST)
+	const endRef = createCommentRef(COMMENT_TYPES.LIST)
+	const children: Array<ChildNode> = []
+	const listResults = each(tag)
+
+	effect(() => {
+		removeNodesBetween(startRef, endRef)
+
+		let ref: ChildNode = startRef
+		for (const child of listResults()) {
+			const results = buildChild(child, propSetter)
+
 			for (const result of results) {
 				ref.after(result)
 				ref = result
 				children.push(result)
 			}
-		})
+		}
+	})
 
-		return [startRef, ...children, endRef]
-	}
-	else if (tag instanceof List) {
-		const startRef = createCommentRef('list')
-		const endRef = createCommentRef('list')
-		const children: Array<ChildNode> = []
-		const listResults = each(tag)
-
-		effect(() => {
-			// remove old children until the endRef
-			let ref = startRef.nextSibling
-			while (ref !== endRef && ref) {
-				const next = ref.nextSibling
-				ref.remove()
-				ref = next
-			}
-
-			ref = startRef
-			for (const child of listResults()) {
-				const results = buildChild(child)
-
-				for (const result of results) {
-					ref.after(result)
-					ref = result
-					children.push(result)
-				}
-			}
-		})
-
-		return [startRef, ...children, endRef]
-	}
-	else if (typeof tag === 'function') {
-		let ref: ChildNode = createCommentRef('signal')
-
-		effect(() => {
-			const value = tag()
-			let element = value instanceof TagHandler ? buildHandler(value) : document.createTextNode(String(value))
-			ref.replaceWith(element)
-			ref = element
-		})
-
-		return [ref]
-	}
-
-	else {
-		return [document.createTextNode(String(tag))]
-	}
+	return [startRef, ...children, endRef]
 }
 
-export function buildHandler(tag: TagHandler<Element>) {
+function handleSignal(tag: ReadSignal<unknown>, propSetter: PropSetter): Array<ChildNode> {
+	let ref: ChildNode = createCommentRef(COMMENT_TYPES.SIGNAL)
+
+	effect(() => {
+		const value = tag()
+		let element = value instanceof TagHandler
+			? buildHandler(value, propSetter)
+			: document.createTextNode(String(value))
+		ref.replaceWith(element)
+		ref = element
+	})
+
+	return [ref]
+}
+
+export function buildChild(tag: TagChild, propSetter: PropSetter): Array<ChildNode> {
+	if (tag instanceof TagHandler) {
+		return [buildHandler(tag, propSetter)]
+	}
+	if (tag instanceof Conditional) {
+		return buildConditionalChild(tag, propSetter)
+	}
+	if (tag instanceof List) {
+		return buildListChild(tag, propSetter)
+	}
+	if (typeof tag === 'function') {
+		return handleSignal(tag, propSetter)
+	}
+
+	return [document.createTextNode(String(tag))]
+}
+
+export function buildHandler(tag: TagHandler<Element>, setter: PropSetter) {
 	const { children, props, creator } = tag
 	const element = creator()
 
-	applyAttributes(element, props)
+	applyAttributes({ element, props, setter })
 
 	for (const child of children) {
 		if (typeof child === 'undefined' || typeof child === 'boolean') {
 			continue
 		}
 
-		const builded = buildChild(child)
+		const builded = buildChild(child, setter)
 
 		for (const item of builded) {
 			element.append(item)
@@ -133,28 +174,38 @@ export function buildHandler(tag: TagHandler<Element>) {
 }
 
 type Setter = (value: any) => void
-const propSetterCache: Record<string, Setter | undefined> = {}
+type PropSetter = (element: Element, propName: string, value: unknown) => void
 
-function applyAttribute(element: Element, propName: string, value: unknown | ReadSignal<unknown>) {
-	const cacheKey = `${element.tagName},${propName}`
+/**
+ * Prop setter cache
+ */
+function createPropSetter(): PropSetter {
+	const cache = new WeakMap<Element, Record<string, Setter | undefined>>()
 
-	if (!propSetterCache[cacheKey]) {
-		propSetterCache[cacheKey] = getPropDescriptor(element, propName)?.set
+	function getSetter(element: Element, propName: string): Setter {
+		const cacheKey = `${element.tagName},${propName}`
+		const elementCache = cache.get(element) || {}
+		let propSetter: Setter | undefined = elementCache[cacheKey]
+
+		if (propSetter) {
+			return propSetter
+		}
+
+		propSetter = getPropDescriptor(element, propName)?.set
+
+		propSetter = propSetter
+			? propSetter.bind(element)
+			: element.setAttribute.bind(element, propName)
+
+		elementCache[cacheKey] = propSetter
+		cache.set(element, elementCache)
+
+		return propSetter
 	}
 
-	const propSetter = propSetterCache[cacheKey]
-
-	const setter: (value: any) => void = propSetter
-		? propSetter.bind(element)
-		: element.setAttribute.bind(element, propName)
-
-	if (typeof value === 'function' && !propName.startsWith('on')) {
-		effect(() => {
-			setter(value())
-		})
-	}
-	else {
-		setter(value)
+	return (element: Element, propName: string, value: unknown): void => {
+		const set = getSetter(element, propName)
+		set(value)
 	}
 }
 
@@ -174,12 +225,33 @@ function getPropDescriptor(
 	}
 }
 
-function applyAttributes<TElement extends Element>(element: TElement, props: Props<TElement>) {
-	for (const [key, value] of Object.entries(props)) {
-		applyAttribute(element, key, value)
+type AttributesArgs<TElement extends Element> = {
+	element: TElement
+	props: Props<TElement>
+	setter: PropSetter
+}
+
+function applyAttributes<TElement extends Element>(args: AttributesArgs<TElement>) {
+	const { element, props, setter } = args
+
+	for (const [propName, value] of Object.entries(props)) {
+		const isSignal = typeof value === 'function'
+		const isEvent = propName.startsWith('on')
+
+		if (isSignal && !isEvent) {
+			effect(() => {
+				setter(element, propName, value())
+			})
+		}
+		else {
+			setter(element, propName, value)
+		}
 	}
 }
 
+/**
+ * Add children to a tag
+ */
 export function $<TElement extends Element>(
 	tag: TagHandler<TElement>,
 	children: Array<TagChild>,
@@ -187,9 +259,4 @@ export function $<TElement extends Element>(
 	tag.children = children
 
 	return tag
-}
-
-export function render(root: HTMLElement, handler: TagHandler<Element>) {
-	const element = buildHandler(handler)
-	root.append(element)
 }
