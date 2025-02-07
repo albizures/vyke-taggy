@@ -32,7 +32,15 @@ class Renderer {
 	}
 }
 
-export function createRenderer(root: HTMLElement) {
+/**
+ * Create a renderer with given root element
+ * @example
+ * ```ts
+ * const renderer = createRenderer(document.body)
+ * renderer.render(App())
+ * ```
+ */
+export function createRenderer(root: HTMLElement): Renderer {
 	return new Renderer(root)
 }
 

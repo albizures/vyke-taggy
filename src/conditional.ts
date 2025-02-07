@@ -14,7 +14,10 @@ export class Conditional<TValue> {
 		readonly cases: Array<Case<TValue>>) {}
 }
 
-export function when<TValue>(getter: Getter<TValue>, ...cases: Array<Case<TValue>>) {
+/**
+ * Render the given element based on given cases
+ */
+export function when<TValue>(getter: Getter<TValue>, ...cases: Array<Case<TValue>>): Conditional<TValue> {
 	return new Conditional(getter, cases)
 }
 

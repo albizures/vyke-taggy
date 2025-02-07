@@ -9,7 +9,10 @@ export class List<TItem> {
 	) {}
 }
 
-export function list<TItem>(values: Signal<Array<TItem>>, renderItem: (item: TItem) => TagChild) {
+/**
+ * Create a reactive list
+ */
+export function list<TItem>(values: Signal<Array<TItem>>, renderItem: (item: TItem) => TagChild): List<TItem> {
 	return new List(values, renderItem)
 }
 
