@@ -9,6 +9,9 @@
 	"exports": {
 		".": {
 			"import": "./dist/index.mjs"
+		},
+		"./signals": {
+			"import": "./dist/signals/index.mjs"
 		}
 	},
 	"main": "./dist/index.mjs",
