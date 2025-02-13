@@ -13,10 +13,13 @@ npm i @vyke/taggy
 ```
 
 ## API
+
 ### list
+
 Create a reactive list
 
 ### createRenderer
+
 Create a renderer with given root element
 
 ```ts
@@ -25,9 +28,11 @@ renderer.render(App())
 ```
 
 ### $
+
 Add children to a tag
 
 ### when
+
 Render the given element based on given cases
 
 ## Others vyke projects
