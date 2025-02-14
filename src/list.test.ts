@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Html } from './html'
-import { List, $list } from './list'
+import { $list, List } from './list'
 import { signal } from './signals'
 import { $ } from './tag-handler'
 

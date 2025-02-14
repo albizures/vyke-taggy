@@ -8,7 +8,6 @@ export default antfu(
 		stylistic: {
 			indent: 'tab',
 		},
-		ignores: ['**/.tshy/**/*'],
 	},
 	{
 		files: ['*.ts', '*.tsx'],
