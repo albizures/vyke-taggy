@@ -7,7 +7,7 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { $, createRenderer, Html, when } from '../../src'
+import { $, $when, createRenderer, Html } from '../../src'
 import { signal } from '../../src/signals'
 
 const { div, button, span } = Html
@@ -20,16 +20,16 @@ function mount() {
 }
 
 function ConditionalRendering() {
-	const status = signal<'off' | 'on'>('off')
+	const $status = signal<'off' | 'on'>('off')
 
 	return $(div(), [
 		$(button({
 			className: 'border-red-500 border',
 			onclick() {
-				status(status() === 'off' ? 'on' : 'off')
+				$status($status() === 'off' ? 'on' : 'off')
 			},
 		}), ['click me']),
-		when(status,
+		$when($status,
 			['on', () => $(span(), ['on'])],
 			['off', () => $(span(), ['off'])],
 		),

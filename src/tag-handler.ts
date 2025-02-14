@@ -20,7 +20,7 @@ export type Props<TTag extends Element> = {
 	[K in keyof TTag]?: TTag[K] | ReadSignal<TTag[K]>
 }
 
-class Renderer {
+export class Renderer {
 	constructor(
 		readonly root: HTMLElement,
 		readonly setter: PropSetter = createPropSetter(),

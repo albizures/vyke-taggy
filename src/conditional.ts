@@ -2,7 +2,7 @@ import type { ReadSignal, Signal } from './signals'
 import type { TagChild } from './tag-handler'
 import { computed } from 'alien-signals'
 
-type Case<TValue> = [value: TValue, () => TagChild]
+export type Case<TValue> = [value: TValue, () => TagChild]
 
 export class Conditional<TValue> {
 	constructor(
@@ -13,7 +13,7 @@ export class Conditional<TValue> {
 /**
  * Render the given element based on given cases
  */
-export function when<TValue>(signal: ReadSignal<TValue> | Signal<TValue>, ...cases: Array<Case<TValue>>): Conditional<TValue> {
+export function $when<TValue>(signal: ReadSignal<TValue> | Signal<TValue>, ...cases: Array<Case<TValue>>): Conditional<TValue> {
 	return new Conditional(signal, cases)
 }
 

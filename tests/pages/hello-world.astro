@@ -20,14 +20,14 @@ function mount() {
 }
 
 function HelloWorld() {
-	const name = signal('world')
+	const $name = signal('world')
 
 	return $(div(), [
-		$(h1(), ['Hello, ', name, '!']),
+		$(h1(), ['Hello, ', $name, '!']),
 		$(label(), ['Name: ',
 			input({
 				type: 'text',
-				...syncValue(name),
+				...syncValue($name),
 			}),
 		]),
 	])

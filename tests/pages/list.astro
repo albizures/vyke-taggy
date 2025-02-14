@@ -7,7 +7,7 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { $, createRenderer, Html, list } from '../../src'
+import { $, $list, createRenderer, Html } from '../../src'
 import { signal } from '../../src/signals'
 
 const { ul, li, button, div } = Html
@@ -20,22 +20,22 @@ function mount() {
 }
 
 function HelloWorld() {
-	const numbers = signal([1, 2, 3])
+	const $numbers = signal([1, 2, 3])
 
 	return $(div(), [
 		$(button({
 			onclick() {
-				numbers([...numbers(), numbers().length + 1])
+				$numbers([...$numbers(), $numbers().length + 1])
 			},
 		}), ['Add']),
 		$(button({
 			onclick() {
-				numbers(numbers().slice(0, -1))
+				$numbers($numbers().slice(0, -1))
 			},
 		}), ['Remove']),
 
 		$(ul(), [
-			list(numbers, (name) => (
+			$list($numbers, (name) => (
 				$(li(), [name])
 			)),
 		]),
