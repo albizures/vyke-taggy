@@ -12,17 +12,46 @@ A simple and small library for creating and manipulating HTML elements in a decl
 npm i @vyke/taggy
 ```
 
+## Hello world
+
+A simple example showing reactive text updates based on input:
+
+```ts
+import { createRenderer, Html } from '@vyke/taggy'
+import { signal, syncValue } from '@vyke/taggy/signals'
+
+const { div, h1, input, label } = Html
+
+const renderer = createRenderer(document.body)
+
+function HelloWorld() {
+	const $name = signal('world')
+
+	return div([
+		h1(['Hello, ', $name, '!']),
+		label(['Name: ',
+			input({
+				type: 'text',
+				// a helper to sync the input value with the signal
+				...syncValue($name),
+			}),
+		]),
+	])
+}
+
+renderer.render(HelloWorld())
+```
+
 ## API
 
-### access
+### createRenderer
 
-Creates a proxy that allows direct property access on signals containing objects
+Create a renderer with given root element
 
-const $value = signal({ foo: 1, nested: { bar: 2 } })
-const $access = access($value)
-
-effect(() => console.log($access.foo)) // logs 1
-effect(() => console.log($access.nested.bar)) // logs 2
+```ts
+const renderer = createRenderer(document.body)
+renderer.render(App())
+```
 
 ### $list
 
@@ -36,15 +65,6 @@ const $items = signal([1, 2, 3])
 const elements = ul([
 	$list($items, (item) => li([item])),
 ])
-```
-
-### createRenderer
-
-Create a renderer with given root element
-
-```ts
-const renderer = createRenderer(document.body)
-renderer.render(App())
 ```
 
 ### $when
@@ -89,6 +109,20 @@ const content = div([
 		error: ($error) => `Error: ${$error()}`,
 	})
 ])
+```
+
+### $t
+
+Create a signal that updates the text content of a tag
+
+```ts
+import { signal } from '@vyke/taggy/signals'
+import { $t } from '@vyke/taggy/text'
+
+const $name = signal('John Doe')
+const $text = $t(() => `Hello, ${$name()}!`)
+
+const content = div([$text])
 ```
 
 ## Others vyke projects

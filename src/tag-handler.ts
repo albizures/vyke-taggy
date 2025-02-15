@@ -34,6 +34,7 @@ export class Renderer {
 
 /**
  * Create a renderer with given root element
+ * @index 10
  * @example
  * ```ts
  * const renderer = createRenderer(document.body)
