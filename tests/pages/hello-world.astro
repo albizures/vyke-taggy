@@ -7,7 +7,7 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { $, createRenderer, Html } from '../../src'
+import { createRenderer, Html } from '../../src'
 import { signal, syncValue } from '../../src/signals'
 
 const { div, h1, input, label } = Html
@@ -22,9 +22,9 @@ function mount() {
 function HelloWorld() {
 	const $name = signal('world')
 
-	return $(div(), [
-		$(h1(), ['Hello, ', $name, '!']),
-		$(label(), ['Name: ',
+	return div([
+		h1(['Hello, ', $name, '!']),
+		label(['Name: ',
 			input({
 				type: 'text',
 				...syncValue($name),

@@ -7,7 +7,7 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { $, $load, createRenderer, Html, loadSignal } from '../../src'
+import { $load, createRenderer, Html, loadSignal } from '../../src'
 import { access, signal } from '../../src/signals'
 
 const { div, button, span } = Html
@@ -41,30 +41,29 @@ function ConditionalRendering() {
 
 	const $loader = access($userLoader)
 
-	return $(div(), [
-		$(div(), [
-			$(button({
+	return div([
+		div([
+			button({
 				className: 'border-red-500 border',
 				onclick() {
 					$id($id() === 1 ? 2 : 1)
 				},
-			}), ['change id']),
-			$(button({
+			}, ['change id']),
+			button({
 				className: 'border-red-500 border',
 				onclick() {
 					$id(100)
 				},
-			}), ['a invalid id']),
+			}, ['a invalid id']),
 		]),
-		$(span(), ['Id selected: ', $id]),
-		$(div(), [() => $loader.status]),
-		$(div(), [
+		span(['Id selected: ', $id]),
+		div([() => $loader.status]),
+		div([
 			$load($userLoader, {
-				loading: () => $(span(), ['loading: ', $id]),
-				loaded: ($user) => $(span(), ['user: ', $user().username]),
-				error: ($error) => $(span(), ['error', ` ${$error()}`]),
+				loading: () => span(['loading: ', $id]),
+				loaded: ($user) => span(['user: ', $user().username]),
+				error: ($error) => span(['error', ` ${$error()}`]),
 			}),
-
 		]),
 	])
 }

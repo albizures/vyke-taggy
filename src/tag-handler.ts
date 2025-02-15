@@ -45,11 +45,16 @@ export function createRenderer(root: HTMLElement): Renderer {
 }
 
 export class TagHandler<TTag extends Element> {
-	children: Array<TagChild> = []
 	constructor(
 		readonly creator: () => TTag,
 		readonly props: Props<TTag> = {},
+		readonly children: Array<TagChild> = [],
 	) {}
+}
+
+export type TagCreator<TTag extends Element> = {
+	(props?: Props<TTag>, children?: Array<TagChild>): TagHandler<TTag>
+	(children?: Array<TagChild>): TagHandler<TTag>
 }
 
 const COMMENT_TYPES = {
@@ -255,16 +260,4 @@ function applyAttributes<TElement extends Element>(args: AttributesArgs<TElement
 			setter(element, propName, value)
 		}
 	}
-}
-
-/**
- * Add children to a tag
- */
-export function $<TElement extends Element>(
-	tag: TagHandler<TElement>,
-	children: Array<TagChild>,
-): TagHandler<TElement> {
-	tag.children = children
-
-	return tag
 }

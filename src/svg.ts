@@ -1,4 +1,4 @@
-import type { Props } from './tag-handler'
+import type { Props, TagChild, TagCreator } from './tag-handler'
 import { TagHandler } from './tag-handler'
 
 export type SvgTags = SVGElementTagNameMap
@@ -10,8 +10,16 @@ export function createSvgTag<TTag extends SvgTag>(name: TTag) {
 
 export const Svg = new Proxy({}, {
 	get(_, name: SvgTag) {
-		return (props?: Props<SvgTags[SvgTag]>) => new TagHandler(() => createSvgTag(name), props)
+		return (propsOrChildren?: Props<SvgTags[SvgTag]> | Array<TagChild>, maybeChildren?: Array<TagChild>) => {
+			const props = Array.isArray(propsOrChildren)
+				? undefined
+				: propsOrChildren
+			const children = Array.isArray(propsOrChildren)
+				? propsOrChildren
+				: maybeChildren
+			return new TagHandler(() => createSvgTag(name), props, children ?? [])
+		}
 	},
 }) as {
-	[K in SvgTag]: (props?: Props<SvgTags[SvgTag]>) => TagHandler<SvgTags[K]>
+	[K in SvgTag]: TagCreator<SvgTags[K]>
 }
