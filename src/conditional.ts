@@ -12,6 +12,20 @@ export class Conditional<TValue> {
 
 /**
  * Render the given element based on given cases
+ * @example
+ * ```ts
+ * import { $when } from '@vyke/taggy'
+ * import { signal } from '@vyke/taggy/signals'
+ *
+ * const $value = signal(1)
+ *
+ * const content = div([
+ * 	$when($value, [
+ * 		1, () => 'One',
+ * 		2, () => 'Two',
+ * 	])
+ * ])
+ * ```
  */
 export function $when<TValue>(signal: ReadSignal<TValue> | Signal<TValue>, ...cases: Array<Case<TValue>>): Conditional<TValue> {
 	return new Conditional(signal, cases)

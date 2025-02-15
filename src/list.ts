@@ -10,7 +10,17 @@ export class List<TItem> {
 }
 
 /**
- * Create a reactive list
+ * Create a reactive list using signal values
+ * @example
+ * ```ts
+ * import { $list, ul, li } from '@vyke/taggy'
+ * import { signal } from '@vyke/taggy/signals'
+ *
+ * const $items = signal([1, 2, 3])
+ * const elements = ul([
+ * 	$list($items, (item) => li([item])),
+ * ])
+ * ```
  */
 export function $list<TItem>(values: Signal<Array<TItem>>, renderItem: (item: TItem) => TagChild): List<TItem> {
 	return new List(values, renderItem)

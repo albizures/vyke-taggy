@@ -71,7 +71,31 @@ type LoaderCases<TValue> = {
 	loaded?: ($value: Signal<TValue>) => TagChild
 	error?: ($error: Signal<unknown>) => TagChild
 }
-
+/**
+ * Render a loader based on the status of a loader signal
+ * @example
+ * ```ts
+ * import { $load, $when } from '@vyke/taggy'
+ * import { signal } from '@vyke/taggy/signals'
+ *
+ * const $user = signal({
+ * 	username: 'john_doe',
+ * 	age: 30,
+ * })
+ *
+ * const $profile = loadSignal(async ()=> {
+ * 	await getProfile($user().username)
+ * })
+ *
+ * const content = div([
+ * 	$load($profile, {
+ * 		loading: () => 'Loading...',
+ * 		loaded: ($value) => $value().name,
+ * 		error: ($error) => 'Error: ' + $error(),
+ * 	})
+ * ])
+ * ```
+ */
 export function $load<TValue>(loader: LoaderSignal<TValue>, statuses: LoaderCases<TValue>): TagChild {
 	const $status = computed(() => loader().status)
 

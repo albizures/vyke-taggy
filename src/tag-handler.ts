@@ -147,7 +147,7 @@ function handleSignal(tag: ReadSignal<unknown>, propSetter: PropSetter): Array<C
 	return [ref]
 }
 
-export function buildChild(tag: TagChild, propSetter: PropSetter): Array<ChildNode> {
+function buildChild(tag: TagChild, propSetter: PropSetter): Array<ChildNode> {
 	if (tag instanceof TagHandler) {
 		return [buildHandler(tag, propSetter)]
 	}
