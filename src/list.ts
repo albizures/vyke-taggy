@@ -13,7 +13,7 @@ export class List<TItem> {
  * Create a reactive list using signal values
  * @example
  * ```ts
- * import { $list, ul, li } from '@vyke/taggy'
+ * import { $list, li, ul } from '@vyke/taggy'
  * import { signal } from '@vyke/taggy/signals'
  *
  * const $items = signal([1, 2, 3])

@@ -83,7 +83,7 @@ type LoaderCases<TValue> = {
  * 	age: 30,
  * })
  *
- * const $profile = loadSignal(async ()=> {
+ * const $profile = loadSignal(async () => {
  * 	await getProfile($user().username)
  * })
  *
@@ -91,7 +91,7 @@ type LoaderCases<TValue> = {
  * 	$load($profile, {
  * 		loading: () => 'Loading...',
  * 		loaded: ($value) => $value().name,
- * 		error: ($error) => 'Error: ' + $error(),
+ * 		error: ($error) => `Error: ${$error()}`,
  * 	})
  * ])
  * ```
