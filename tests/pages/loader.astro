@@ -1,0 +1,73 @@
+---
+import Page from '../Page.astro';
+---
+
+<Page>
+
+</Page>
+
+<script>
+import { $, $load, createRenderer, Html, loadSignal } from '../../src'
+import { access, signal } from '../../src/signals'
+
+const { div, button, span } = Html
+
+function mount() {
+	document.addEventListener('DOMContentLoaded', () => {
+		const renderer = createRenderer(document.body)
+		renderer.render(ConditionalRendering())
+	})
+}
+
+async function getUser(id: number) {
+	await new Promise((resolve) => {
+		setTimeout(resolve, 100)
+	})
+
+	if (id === 100) {
+		throw new Error('invalid id')
+	}
+
+	const data = signal({ username: `johndoe (${id})`, id })
+
+	return data
+}
+
+function ConditionalRendering() {
+	const $id = signal(1)
+	const $userLoader = loadSignal(async () => {
+		return (await getUser($id()))()
+	})
+
+	const $loader = access($userLoader)
+
+	return $(div(), [
+		$(div(), [
+			$(button({
+				className: 'border-red-500 border',
+				onclick() {
+					$id($id() === 1 ? 2 : 1)
+				},
+			}), ['change id']),
+			$(button({
+				className: 'border-red-500 border',
+				onclick() {
+					$id(100)
+				},
+			}), ['a invalid id']),
+		]),
+		$(span(), ['Id selected: ', $id]),
+		$(div(), [() => $loader.status]),
+		$(div(), [
+			$load($userLoader, {
+				loading: () => $(span(), ['loading: ', $id]),
+				loaded: ($user) => $(span(), ['user: ', $user().username]),
+				error: ($error) => $(span(), ['error', ` ${$error()}`]),
+			}),
+
+		]),
+	])
+}
+
+mount()
+</script>
