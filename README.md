@@ -85,7 +85,7 @@ const content = div([
 ])
 ```
 
-### $load
+### matchLoader
 
 Render a loader based on the status of a loader signal
 
