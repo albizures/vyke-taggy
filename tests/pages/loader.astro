@@ -7,7 +7,7 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { $load, $t, createRenderer, Html, loadSignal } from '../../src'
+import { $t, createRenderer, Html, loadSignal } from '../../src'
 import { signal } from '../../src/signals'
 
 const { div, button, span } = Html
@@ -59,7 +59,7 @@ function ConditionalRendering() {
 			$t(() => `current status: ${$userLoader().status}`),
 		]),
 		div([
-			$load($userLoader, {
+			$userLoader.match({
 				loading: () => span(['loading: ', $id]),
 				loaded: ($user) => span(['user: ', $user().username]),
 				error: ($error) => span(['error', ` ${$error()}`]),

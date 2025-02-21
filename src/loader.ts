@@ -9,7 +9,24 @@ type LoaderValue<TValue> =
 	| { status: 'loaded', value: Signal<TValue>, error?: never }
 	| { status: 'error', value?: never, error: unknown }
 type LoaderStatus = LoaderValue<unknown>['status']
-type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>>
+type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
+	/**
+	 * Match the status of the loader
+	 * @example
+	 * ```ts
+	 * const $profile = loadSignal(async () => {
+	 * 	await getProfile($user().username)
+	 * })
+	 *
+	 * $profile.match({
+	 * 	loading: () => 'Loading...',
+	 * 	loaded: ($value) => $value().name,
+	 * 	error: ($error) => `Error: ${$error()}`,
+	 * })
+	 * ```
+	 */
+	match: (statuses: LoaderCases<TValue>) => TagChild
+}
 
 type LoadOptions = {
 	minTime?: number
@@ -38,7 +55,7 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptio
 			case 'error':
 				return { status, error: $error }
 		}
-	})
+	}) as LoaderSignal<TValue>
 
 	const targetTime = Date.now() + minTime
 
@@ -63,6 +80,10 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptio
 		})
 	})
 
+	loader.match = (statuses: LoaderCases<TValue>) => {
+		return matchLoader(loader, statuses)
+	}
+
 	return loader as LoaderSignal<TValue>
 }
 
@@ -71,6 +92,7 @@ type LoaderCases<TValue> = {
 	loaded?: ($value: Signal<TValue>) => TagChild
 	error?: ($error: Signal<unknown>) => TagChild
 }
+
 /**
  * Render a loader based on the status of a loader signal
  * @example
@@ -96,7 +118,7 @@ type LoaderCases<TValue> = {
  * ])
  * ```
  */
-export function $load<TValue>(loader: LoaderSignal<TValue>, statuses: LoaderCases<TValue>): TagChild {
+export function matchLoader<TValue>(loader: LoaderSignal<TValue>, statuses: LoaderCases<TValue>): TagChild {
 	const $status = computed(() => loader().status)
 
 	const {
