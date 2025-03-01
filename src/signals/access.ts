@@ -31,7 +31,7 @@ export function $access<TValue extends Record<string, unknown>>($value: AnySigna
 
 	const signalCache = new Map<string, Signal<unknown>>()
 
-	const $accessor = new Proxy({}, {
+	const $accessor = new Proxy($value, {
 		get(target, prop: string) {
 			// Check if we already have a cached signal for this property
 			const cached = signalCache.get(prop)
@@ -66,8 +66,7 @@ export function $access<TValue extends Record<string, unknown>>($value: AnySigna
 			return $nested
 		},
 		apply(target, thisArg, argArray) {
-			// @ts-expect-error - argArray is not typed
-			return $value(...argArray)
+			return Reflect.apply(target, thisArg, argArray)
 		},
 	}) as AccessSignal<TValue>
 

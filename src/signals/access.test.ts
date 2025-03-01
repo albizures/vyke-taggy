@@ -3,6 +3,17 @@ import { describe, expect, it } from 'vitest'
 import { $access } from './access'
 
 describe('access', () => {
+	it('should allow normal signal access', () => {
+		const $value = signal({
+			nested: {
+				count: 0,
+			},
+		})
+
+		const $accessor = $access($value)
+		expect($accessor()).toBe($value())
+	})
+
 	it('should access nested signals', () => {
 		const $value = signal({
 			nested: {
