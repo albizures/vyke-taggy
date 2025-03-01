@@ -1,9 +1,11 @@
 import type { AnySignal, Signal } from './signal'
 import { computed } from 'alien-signals'
 
-type AccessSignal<TValue extends Record<string, unknown>> = Signal<TValue> & {
+export type AccessSignal<TValue extends Record<string, unknown>> = Signal<TValue> & {
 	[K in keyof TValue]: TValue[K] extends Record<string, unknown> ? AccessSignal<TValue[K]> : Signal<TValue[K]>
 }
+
+const cache = new WeakMap<object, AccessSignal<any>>()
 
 /**
  * Creates an access signal helper to access nested signals
@@ -22,9 +24,14 @@ type AccessSignal<TValue extends Record<string, unknown>> = Signal<TValue> & {
  * ```
  */
 export function $access<TValue extends Record<string, unknown>>($value: AnySignal<TValue>): AccessSignal<TValue> {
+	let $savedAccessor = cache.get($value)
+	if ($savedAccessor) {
+		return $savedAccessor as AccessSignal<TValue>
+	}
+
 	const signalCache = new Map<string, Signal<unknown>>()
 
-	return new Proxy({}, {
+	const $accessor = new Proxy({}, {
 		get(target, prop: string) {
 			// Check if we already have a cached signal for this property
 			const cached = signalCache.get(prop)
@@ -63,4 +70,7 @@ export function $access<TValue extends Record<string, unknown>>($value: AnySigna
 			return $value(...argArray)
 		},
 	}) as AccessSignal<TValue>
+
+	cache.set($value, $accessor)
+	return $accessor
 }
