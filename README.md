@@ -95,10 +95,10 @@ import { signal } from '@vyke/taggy/signals'
 const $value = signal(1)
 
 const content = div([
-	$when($value, [
-		1, () => 'One',
-		2, () => 'Two',
-	])
+	$when($value,
+		[1, () => 'One'],
+		[2, () => 'Two'],
+	)
 ])
 ```
 
