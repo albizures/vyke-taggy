@@ -6,3 +6,5 @@ export type Signal<T> = {
 export type ReadSignal<T> = {
 	(): T
 }
+
+export type AnySignal<TValue> = ReadSignal<TValue> | Signal<TValue>
