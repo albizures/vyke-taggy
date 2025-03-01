@@ -1,6 +1,6 @@
 {
 	"name": "@vyke/taggy",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"exports": {
 		".": "./src/index.ts",
 		"./signals": "./src/signals/index.ts"
