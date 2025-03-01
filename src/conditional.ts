@@ -20,10 +20,10 @@ export class Conditional<TValue> {
  * const $value = signal(1)
  *
  * const content = div([
- * 	$when($value, [
- * 		1, () => 'One',
- * 		2, () => 'Two',
- * 	])
+ * 	$when($value,
+ * 		[1, () => 'One'],
+ * 		[2, () => 'Two'],
+ * 	)
  * ])
  * ```
  */
