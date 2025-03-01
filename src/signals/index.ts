@@ -1,5 +1,6 @@
 import { effect } from 'alien-signals'
 
+export * from './access'
 export * from './signal'
 export * from './syncValue'
 export * from './toggle'

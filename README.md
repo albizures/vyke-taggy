@@ -53,6 +53,23 @@ const renderer = createRenderer(document.body)
 renderer.render(App())
 ```
 
+### $access
+
+Creates an access signal helper to access nested signals
+
+```ts
+import { $access } from '@vyke/taggy/signals'
+
+const $value = signal({
+	nested: {
+		count: 0,
+	}
+})
+const $nested = $access($value)
+// where $count is a computed signal
+const $count = $nested.nested.count
+```
+
 ### $list
 
 Create a reactive list using signal values
@@ -85,12 +102,13 @@ const content = div([
 ])
 ```
 
-### matchLoader
+### loadSignal
 
-Render a loader based on the status of a loader signal
+creates a loader signal that will render a loader based
+on the status of the promise
 
 ```ts
-import { $load, $when } from '@vyke/taggy'
+import { loadSignal } from '@vyke/taggy'
 import { signal } from '@vyke/taggy/signals'
 
 const $user = signal({
@@ -103,7 +121,7 @@ const $profile = loadSignal(async () => {
 })
 
 const content = div([
-	$load($profile, {
+	$profile.match({
 		loading: () => 'Loading...',
 		loaded: ($value) => $value().name,
 		error: ($error) => `Error: ${$error()}`,
