@@ -15,7 +15,7 @@ const { div, button, span } = Html
 function mount() {
 	document.addEventListener('DOMContentLoaded', () => {
 		const renderer = createRenderer(document.body)
-		renderer.render(ConditionalRendering())
+		renderer.render(Loading())
 	})
 }
 
@@ -33,7 +33,7 @@ async function getUser(id: number) {
 	return data
 }
 
-function ConditionalRendering() {
+function Loading() {
 	const $id = signal(1)
 	const $userLoader = loadSignal(async () => {
 		return (await getUser($id()))()

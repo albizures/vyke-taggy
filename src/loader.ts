@@ -25,7 +25,7 @@ export type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
 	 * })
 	 * ```
 	 */
-	match: (statuses: LoaderCases<TValue>) => TagChild
+	match: (statuses: LoaderCases<TValue>, options?: LoadOptions) => TagChild
 
 	/**
 	 * Reload the loader
@@ -35,12 +35,6 @@ export type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
 
 type LoadOptions = {
 	minTime?: number
-}
-
-async function wait(ms: number) {
-	return new Promise((resolve) => {
-		setTimeout(resolve, ms)
-	})
 }
 
 /**
@@ -69,8 +63,7 @@ async function wait(ms: number) {
  * ])
  * ```
  */
-export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptions = {}): LoaderSignal<TValue> {
-	const { minTime = 1000 } = options
+export function loadSignal<TValue>(fn: () => Promise<TValue>): LoaderSignal<TValue> {
 	const $counter = signal(0)
 	const $status = signal<LoaderStatus>('loading')
 	const $value = signal<TValue>()
@@ -89,8 +82,6 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptio
 		}
 	}) as LoaderSignal<TValue>
 
-	let targetTime = Date.now() + minTime
-
 	effect(() => {
 		// force a re-render of the loader
 		$counter()
@@ -98,14 +89,7 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptio
 		$status('loading')
 
 		const promise = fn()
-		promise.then(async (value) => {
-			const timeLeft = targetTime - Date.now()
-
-			if (timeLeft > 0) {
-				await wait(timeLeft)
-			}
-
-			// order is important here
+		promise.then((value) => {
 			// if we set the status first, the value will be undefined
 			$value(value)
 			$status('loaded')
@@ -115,13 +99,12 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptio
 		})
 	})
 
-	loader.match = (statuses: LoaderCases<TValue>) => {
-		return matchLoader(loader, statuses)
+	loader.match = (statuses: LoaderCases<TValue>, options: LoadOptions = {}) => {
+		return matchLoader(loader, statuses, options)
 	}
 
 	loader.reload = () => {
 		$counter($counter() + 1)
-		targetTime = Date.now() + minTime
 	}
 
 	return loader as LoaderSignal<TValue>
@@ -133,8 +116,33 @@ type LoaderCases<TValue> = {
 	error?: ($error: Signal<unknown>) => TagChild
 }
 
-function matchLoader<TValue>(loader: LoaderSignal<TValue>, statuses: LoaderCases<TValue>): TagChild {
-	const $status = computed(() => loader().status)
+function matchLoader<TValue>(loader: LoaderSignal<TValue>, statuses: LoaderCases<TValue>, options: LoadOptions = {}): TagChild {
+	const { minTime = 1000 } = options
+	const $now = signal(Date.now())
+	let targetTime: number | undefined
+	let interval: ReturnType<typeof setInterval> | undefined
+	// Compute whether we should still show loading state based on minTime
+	const $status = computed(() => {
+		const currentStatus = loader().status
+
+		if (!targetTime) {
+			interval = setInterval(() => {
+				$now(Date.now())
+			}, 100)
+
+			targetTime = Date.now() + minTime
+		}
+
+		const timeLeft = targetTime - $now()
+
+		if (timeLeft > 0) {
+			return 'loading'
+		}
+
+		targetTime = undefined
+		clearInterval(interval)
+		return currentStatus
+	})
 
 	const {
 		error = () => '',
