@@ -53,6 +53,12 @@ function ConditionalRendering() {
 					$id(100)
 				},
 			}, ['a invalid id']),
+			button({
+				className: 'border-red-500 border',
+				onclick() {
+					$userLoader.reload()
+				},
+			}, ['reload']),
 		]),
 		span(['Id selected: ', $id]),
 		div([

@@ -7,7 +7,7 @@ export type SyncValueProps = {
 	oninput: (event: Event) => void
 }
 
-export function syncValue(value: Signal<string | number>): SyncValueProps {
+export function syncValue(value: Signal<string> | Signal<number>): SyncValueProps {
 	return {
 		value: computed(() => String(value())),
 		oninput(event: Event) {

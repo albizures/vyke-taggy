@@ -26,6 +26,11 @@ type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
 	 * ```
 	 */
 	match: (statuses: LoaderCases<TValue>) => TagChild
+
+	/**
+	 * Reload the loader
+	 */
+	reload: () => void
 }
 
 type LoadOptions = {
@@ -66,6 +71,7 @@ async function wait(ms: number) {
  */
 export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptions = {}): LoaderSignal<TValue> {
 	const { minTime = 1000 } = options
+	const $counter = signal(0)
 	const $status = signal<LoaderStatus>('loading')
 	const $value = signal<TValue>()
 	const $error = signal<unknown>()
@@ -83,9 +89,12 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptio
 		}
 	}) as LoaderSignal<TValue>
 
-	const targetTime = Date.now() + minTime
+	let targetTime = Date.now() + minTime
 
 	effect(() => {
+		// force a re-render of the loader
+		$counter()
+
 		$status('loading')
 
 		const promise = fn()
@@ -108,6 +117,11 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>, options: LoadOptio
 
 	loader.match = (statuses: LoaderCases<TValue>) => {
 		return matchLoader(loader, statuses)
+	}
+
+	loader.reload = () => {
+		$counter($counter() + 1)
+		targetTime = Date.now() + minTime
 	}
 
 	return loader as LoaderSignal<TValue>

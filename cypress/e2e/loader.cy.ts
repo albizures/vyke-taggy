@@ -27,4 +27,12 @@ describe('loader', () => {
 		// Verify error message appears
 		cy.get('span').should('contain', 'error Error: invalid id')
 	})
+
+	it('should handle reload states', () => {
+		// Trigger reload state
+		cy.wait(1000)
+		cy.get('button').contains('reload').click()
+		cy.get('div').should('contain', 'loading')
+		cy.get('span').should('contain', 'user: johndoe (1)')
+	})
 })
