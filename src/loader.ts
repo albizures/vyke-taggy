@@ -9,7 +9,7 @@ type LoaderValue<TValue> =
 	| { status: 'loaded', value: Signal<TValue>, error?: never }
 	| { status: 'error', value?: never, error: unknown }
 type LoaderStatus = LoaderValue<unknown>['status']
-type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
+export type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
 	/**
 	 * Match the status of the loader
 	 * @example
