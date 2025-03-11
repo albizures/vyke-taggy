@@ -150,7 +150,7 @@ function matchLoader<TValue>(loader: LoaderSignal<TValue>, statuses: LoaderCases
 		loading = () => '',
 	} = statuses
 
-	const cases: Array<Case<LoaderStatus>> = [
+	const cases: Array<Case<LoaderStatus, LoaderStatus>> = [
 		['error', () => error(loader().error as Signal<unknown>)],
 		['loaded', () => loaded(loader().value as Signal<TValue>)],
 		['loading', () => loading()],

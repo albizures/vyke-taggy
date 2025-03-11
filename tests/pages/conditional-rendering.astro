@@ -21,18 +21,28 @@ function mount() {
 
 function ConditionalRendering() {
 	const $status = signal<'off' | 'on'>('off')
+	const $maybeString = signal<string | undefined>(undefined)
 
 	return div([
 		button({
 			className: 'border-red-500 border',
 			onclick() {
 				$status($status() === 'off' ? 'on' : 'off')
+				$maybeString($maybeString() === undefined ? 'hello' : undefined)
 			},
 		}, ['click me']),
-		$when($status,
-			['on', () => span(['on'])],
-			['off', () => span(['off'])],
-		),
+		div([
+			$when($status,
+				['on', () => span(['on'])],
+				['off', () => span(['off'])],
+			),
+		]),
+		div([
+			$when($maybeString,
+				$when.case($when.isString, (value) => span(['it\'s a string: ', value])),
+				[undefined, () => span(['no string'])],
+			),
+		]),
 	])
 }
 
