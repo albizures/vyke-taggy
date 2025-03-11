@@ -20,7 +20,7 @@ function mount() {
 }
 
 function ConditionalRendering() {
-	const $status = signal<'off' | 'on'>('off')
+	const $status = signal<'off' | 'on' | 'other'>('off')
 	const $maybeString = signal<string | undefined>(undefined)
 
 	return div([
@@ -31,10 +31,17 @@ function ConditionalRendering() {
 				$maybeString($maybeString() === undefined ? 'hello' : undefined)
 			},
 		}, ['click me']),
+		button({
+			className: 'border-red-500 border',
+			onclick() {
+				$status('other')
+			},
+		}, ['click for other']),
 		div([
 			$when($status,
 				['on', () => span(['on'])],
 				['off', () => span(['off'])],
+				$when.otherwise(() => span(['other'])),
 			),
 		]),
 		div([

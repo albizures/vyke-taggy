@@ -51,6 +51,10 @@ $when.case = <TValue, TExpected extends TValue>(asserter: ValueAsserter<TValue, 
 	return [asserter, handler] as const satisfies AssertedCase<TValue, TExpected>
 }
 
+$when.otherwise = <TValue>(handler: () => TagChild): Case<TValue, TValue> => {
+	return [(value: TValue): value is TValue => true, handler] as const satisfies AssertedCase<TValue, TValue>
+}
+
 $when.isString = (value: unknown): value is string => {
 	return typeof value === 'string'
 }
