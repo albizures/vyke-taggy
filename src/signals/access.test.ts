@@ -1,5 +1,6 @@
+import type { Signal } from './signal'
 import { signal } from 'alien-signals'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { $access } from './access'
 
 describe('access', () => {
@@ -60,5 +61,24 @@ describe('access', () => {
 		const $count2 = $nested.nested.count
 
 		expect($count1).toBe($count2)
+	})
+
+	describe('when the give object has optional properties', () => {
+		it('should not throw an error', () => {
+			type Value = {
+				optional?: number
+				required: number
+			}
+			const $value = signal<Value>({
+				optional: undefined,
+				required: 1,
+			})
+
+			const $accessor = $access($value)
+			expectTypeOf($accessor.optional).toEqualTypeOf<Signal<number | undefined>>()
+			expect($accessor.optional()).toBeUndefined()
+			expectTypeOf($accessor.required).toEqualTypeOf<Signal<number>>()
+			expect($accessor.required()).toBe(1)
+		})
 	})
 })

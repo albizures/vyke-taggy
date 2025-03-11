@@ -2,7 +2,7 @@ import type { AnySignal, Signal } from './signal'
 import { computed } from 'alien-signals'
 
 export type AccessSignal<TValue extends Record<string, unknown>> = Signal<TValue> & {
-	[K in keyof TValue]: TValue[K] extends Record<string, unknown> ? AccessSignal<TValue[K]> : Signal<TValue[K]>
+	[K in keyof TValue]-?: TValue[K] extends Record<string, unknown> ? AccessSignal<TValue[K]> : Signal<TValue[K]>
 }
 
 const cache = new WeakMap<object, AccessSignal<any>>()
