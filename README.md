@@ -96,8 +96,9 @@ const $value = signal(1)
 
 const content = div([
 	$when($value,
-		[1, () => 'One'],
-		[2, () => 'Two'],
+		[1, (value) => `One: ${value}`],
+		[2, (value) => `Two: ${value}`],
+		$when.case((value) => value === 3, (value) => `Three: ${value}`),
 	)
 ])
 ```
