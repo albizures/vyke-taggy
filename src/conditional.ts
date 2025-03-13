@@ -1,6 +1,6 @@
 import type { ReadSignal, Signal } from './signals'
 import type { TagChild } from './tag-handler'
-import { computed } from 'alien-signals'
+import { computed, pauseTracking, resumeTracking } from 'alien-signals'
 
 type ValueAsserter<TInput, TExpected extends TInput> = (value: TInput) => value is TExpected
 
@@ -72,7 +72,10 @@ export function match<TValue, TCases extends Array<Case<any, any>>>(conditional:
 		const value = conditional.signal()
 		for (const [caseValue, handler] of conditional.cases) {
 			if ((isValueAsserter(caseValue) && caseValue(value)) || Object.is(caseValue, value)) {
-				return handler(value)
+				pauseTracking()
+				const result = handler(value)
+				resumeTracking()
+				return result
 			}
 		}
 	})
