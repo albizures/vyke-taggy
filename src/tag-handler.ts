@@ -18,7 +18,7 @@ export type TagChild =
 
 export type Props<TTag extends Element> = {
 	[K in keyof TTag]?: TTag[K] | ReadSignal<TTag[K]>
-}
+} & Record<`data-${string}`, string | ReadSignal<string>>
 
 export class Renderer {
 	constructor(
@@ -87,11 +87,11 @@ function removeNodesBetween(startRef: ChildNode, endRef: ChildNode) {
 function buildConditionalChild(tag: Conditional<unknown, any>, propSetter: PropSetter): Array<ChildNode> {
 	let startRef: ChildNode = createCommentRef(COMMENT_TYPES.CONDITIONAL)
 	let endRef: ChildNode = createCommentRef(COMMENT_TYPES.CONDITIONAL)
-	const value = match(tag)
+	const $value = match(tag)
 	const children: Array<ChildNode> = []
 
 	effect(() => {
-		const results = buildChild(value(), propSetter)
+		const results = buildChild($value(), propSetter)
 
 		removeNodesBetween(startRef, endRef)
 
@@ -249,10 +249,9 @@ function applyAttributes<TElement extends Element>(args: AttributesArgs<TElement
 	const { element, props, setter } = args
 
 	for (const [propName, value] of Object.entries(props)) {
-		const isSignal = typeof value === 'function'
 		const isEvent = propName.startsWith('on')
 
-		if (isSignal && !isEvent) {
+		if (isSignal(value) && !isEvent) {
 			effect(() => {
 				setter(element, propName, value())
 			})
@@ -261,4 +260,8 @@ function applyAttributes<TElement extends Element>(args: AttributesArgs<TElement
 			setter(element, propName, value)
 		}
 	}
+}
+
+function isSignal<T>(value: T | unknown): value is ReadSignal<T> {
+	return typeof value === 'function'
 }
