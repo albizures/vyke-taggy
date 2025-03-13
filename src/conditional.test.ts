@@ -1,4 +1,4 @@
-import { computed, effect, signal } from 'alien-signals'
+import { effect, signal } from 'alien-signals'
 import { describe, expect, it, vi } from 'vitest'
 import { $when, match } from './conditional'
 
