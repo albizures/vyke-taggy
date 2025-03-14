@@ -4,12 +4,12 @@ import type { TagChild } from './tag-handler'
 import { $when } from './conditional'
 import { computed, effect, signal } from './signals'
 
-type LoaderValue<TValue> =
-	| { status: 'loading', value?: never, error?: never }
-	| { status: 'loaded', value: Signal<TValue>, error?: never }
-	| { status: 'error', value?: never, error: unknown }
+type LoaderValue<TValue, TDefault = undefined> =
+	| { status: 'loading', $value: Signal<TValue | TDefault>, error?: never }
+	| { status: 'loaded', $value: Signal<TValue>, error?: never }
+	| { status: 'error', $value: Signal<TValue | TDefault>, error: unknown }
 type LoaderStatus = LoaderValue<unknown>['status']
-export type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
+export type LoaderSignal<TValue, TDefault = undefined> = ReadSignal<LoaderValue<TValue, TDefault>> & {
 	/**
 	 * Match the status of the loader
 	 * @example
@@ -25,7 +25,7 @@ export type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
 	 * })
 	 * ```
 	 */
-	match: (statuses: LoaderCases<TValue>, options?: LoadOptions) => TagChild
+	match: (statuses: LoaderCases<TValue>, options?: MatchOptions) => TagChild
 
 	/**
 	 * Reload the loader
@@ -33,8 +33,12 @@ export type LoaderSignal<TValue> = ReadSignal<LoaderValue<TValue>> & {
 	reload: () => void
 }
 
-type LoadOptions = {
+type MatchOptions = {
 	minTime?: number
+}
+
+type LoaderOptions<TDefault> = {
+	initialValue?: TDefault
 }
 
 /**
@@ -63,10 +67,17 @@ type LoadOptions = {
  * ])
  * ```
  */
-export function loadSignal<TValue>(fn: () => Promise<TValue>): LoaderSignal<TValue> {
+export function loadSignal<
+	TValue,
+	TDefault extends TValue | undefined = undefined,
+>(
+	fn: () => Promise<TValue>,
+	options: LoaderOptions<TDefault> = {},
+): LoaderSignal<TValue, TDefault> {
+	const { initialValue } = options
 	const $counter = signal(0)
 	const $status = signal<LoaderStatus>('loading')
-	const $value = signal<TValue>()
+	const $value = signal<TValue | TDefault>(initialValue ?? (undefined as TValue | TDefault))
 	const $error = signal<unknown>()
 
 	const loader = computed(() => {
@@ -74,13 +85,13 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>): LoaderSignal<TVal
 
 		switch (status) {
 			case 'loading':
-				return { status }
+				return { status, $value }
 			case 'loaded':
-				return { status, value: $value }
+				return { status, $value }
 			case 'error':
-				return { status, error: $error }
+				return { status, $value, error: $error }
 		}
-	}) as LoaderSignal<TValue>
+	}) as LoaderSignal<TValue, TDefault>
 
 	effect(() => {
 		// force a re-render of the loader
@@ -99,7 +110,7 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>): LoaderSignal<TVal
 		})
 	})
 
-	loader.match = (statuses: LoaderCases<TValue>, options: LoadOptions = {}) => {
+	loader.match = (statuses: LoaderCases<TValue, TDefault>, options: MatchOptions = {}) => {
 		return matchLoader(loader, statuses, options)
 	}
 
@@ -107,16 +118,16 @@ export function loadSignal<TValue>(fn: () => Promise<TValue>): LoaderSignal<TVal
 		$counter($counter() + 1)
 	}
 
-	return loader as LoaderSignal<TValue>
+	return loader
 }
 
-type LoaderCases<TValue> = {
+type LoaderCases<TValue, TDefault = undefined> = {
 	loading?: () => TagChild
 	loaded?: ($value: Signal<TValue>) => TagChild
-	error?: ($error: Signal<unknown>) => TagChild
+	error?: ($error: Signal<unknown | TDefault>) => TagChild
 }
 
-function matchLoader<TValue>(loader: LoaderSignal<TValue>, statuses: LoaderCases<TValue>, options: LoadOptions = {}): TagChild {
+function matchLoader<TValue, TDefault = undefined>(loader: LoaderSignal<TValue, TDefault>, statuses: LoaderCases<TValue, TDefault>, options: MatchOptions = {}): TagChild {
 	const { minTime = 1000 } = options
 	const $now = signal(Date.now())
 	let targetTime: number | undefined
@@ -152,7 +163,7 @@ function matchLoader<TValue>(loader: LoaderSignal<TValue>, statuses: LoaderCases
 
 	const cases: Array<Case<LoaderStatus, LoaderStatus>> = [
 		['error', () => error(loader().error as Signal<unknown>)],
-		['loaded', () => loaded(loader().value as Signal<TValue>)],
+		['loaded', () => loaded(loader().$value as Signal<TValue>)],
 		['loading', () => loading()],
 	]
 
