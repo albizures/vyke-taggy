@@ -70,20 +70,6 @@ const $nested = $access($value)
 const $count = $nested.nested.count
 ```
 
-### $list
-
-Create a reactive list using signal values
-
-```ts
-import { $list, li, ul } from '@vyke/taggy'
-import { signal } from '@vyke/taggy/signals'
-
-const $items = signal([1, 2, 3])
-const elements = ul([
-	$list($items, (item) => li([item])),
-])
-```
-
 ### $when
 
 Render the given element based on given cases
@@ -100,6 +86,20 @@ const content = div([
 		[2, (value) => `Two: ${value}`],
 		$when.case((value) => value === 3, (value) => `Three: ${value}`),
 	)
+])
+```
+
+### $list
+
+Create a reactive list using signal values
+
+```ts
+import { $list, li, ul } from '@vyke/taggy'
+import { signal } from '@vyke/taggy/signals'
+
+const $items = signal([1, 2, 3])
+const elements = ul([
+	$list($items, (item) => li([item])),
 ])
 ```
 

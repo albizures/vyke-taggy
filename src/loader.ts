@@ -1,6 +1,5 @@
-import type { Case } from './conditional'
+import type { Case, Conditional } from './conditional'
 import type { ReadSignal, Signal } from './signals'
-import type { TagChild } from './tag-handler'
 import { $when } from './conditional'
 import { computed, effect, signal } from './signals'
 
@@ -25,7 +24,7 @@ export type LoaderSignal<TValue, TDefault = undefined> = ReadSignal<LoaderValue<
 	 * })
 	 * ```
 	 */
-	match: (statuses: LoaderCases<TValue>, options?: MatchOptions) => TagChild
+	match: <TOutput>(statuses: LoaderCases<TValue, TOutput, TDefault>, options?: MatchOptions) => Conditional<LoaderStatus, TOutput, Array<Case<LoaderStatus, LoaderStatus, TOutput>>>
 
 	/**
 	 * Reload the loader
@@ -110,7 +109,7 @@ export function loadSignal<
 		})
 	})
 
-	loader.match = (statuses: LoaderCases<TValue, TDefault>, options: MatchOptions = {}) => {
+	loader.match = <TOutput>(statuses: LoaderCases<TValue, TOutput, TDefault>, options: MatchOptions = {}) => {
 		return matchLoader(loader, statuses, options)
 	}
 
@@ -121,13 +120,21 @@ export function loadSignal<
 	return loader
 }
 
-type LoaderCases<TValue, TDefault = undefined> = {
-	loading?: () => TagChild
-	loaded?: ($value: Signal<TValue>) => TagChild
-	error?: ($error: Signal<unknown | TDefault>) => TagChild
+type LoaderCases<TValue, TOutput, TDefault = undefined> = {
+	loading?: () => TOutput
+	loaded?: ($value: Signal<TValue>) => TOutput
+	error?: ($error: Signal<unknown | TDefault>) => TOutput
 }
 
-function matchLoader<TValue, TDefault = undefined>(loader: LoaderSignal<TValue, TDefault>, statuses: LoaderCases<TValue, TDefault>, options: MatchOptions = {}): TagChild {
+function matchLoader<
+	TValue,
+	TOutput,
+	TDefault = undefined,
+>(
+	loader: LoaderSignal<TValue, TDefault>,
+	statuses: LoaderCases<TValue, TOutput, TDefault>,
+	options: MatchOptions = {},
+): Conditional<LoaderStatus, TOutput, Array<Case<LoaderStatus, LoaderStatus, TOutput>>> {
 	const { minTime = 1000 } = options
 	const $now = signal(Date.now())
 	let targetTime: number | undefined
@@ -156,12 +163,12 @@ function matchLoader<TValue, TDefault = undefined>(loader: LoaderSignal<TValue, 
 	})
 
 	const {
-		error = () => '',
-		loaded = () => '',
-		loading = () => '',
+		error = () => undefined as TOutput,
+		loaded = () => undefined as TOutput,
+		loading = () => undefined as TOutput,
 	} = statuses
 
-	const cases: Array<Case<LoaderStatus, LoaderStatus>> = [
+	const cases: Array<Case<LoaderStatus, LoaderStatus, TOutput>> = [
 		['error', () => error(loader().error as Signal<unknown>)],
 		['loaded', () => loaded(loader().$value as Signal<TValue>)],
 		['loading', () => loading()],

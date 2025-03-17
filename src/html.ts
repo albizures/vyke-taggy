@@ -1,21 +1,31 @@
-import type { Props, TagChild, TagCreator } from './tag-handler'
-import { TagHandler } from './tag-handler'
+import type { Conditional } from './conditional'
+import type { TagMapProxy } from './define-tags'
+import type { List } from './list'
+import type { ReadSignal } from './signals'
+import type { CommonChild, TagHandler } from './tag-handler'
+import { defineTags } from './define-tags'
 
-export type HtmlTags = HTMLElementTagNameMap
-export type HtmlTag = keyof HtmlTags
-
-export function createHtmlTag<TTag extends HtmlTag>(name: TTag) {
-	return document.createElement(name)
+type HtmlTags = {
+	[TTag in keyof HTMLElementTagNameMap]: {
+		tag: HTMLElementTagNameMap[TTag]
+		props:
+			& {
+				[TPropName in keyof HTMLElementTagNameMap[TTag]]?:
+					| HTMLElementTagNameMap[TTag][TPropName]
+					| ReadSignal<HTMLElementTagNameMap[TTag][TPropName]>
+			}
+			& Record<`data-${string}`, string | ReadSignal<string>>
+	}
 }
 
-export const Html = new Proxy({}, {
-	get(_, name: HtmlTag) {
-		return (propsOrChildren?: Props<HtmlTags[HtmlTag]> | Array<TagChild>, maybeChildren?: Array<TagChild>) => {
-			const props = Array.isArray(propsOrChildren) ? undefined : propsOrChildren
-			const children = Array.isArray(propsOrChildren) ? propsOrChildren : maybeChildren
-			return new TagHandler(() => createHtmlTag(name), props, children ?? [])
-		}
+type HtmlChild =
+	| TagHandler<Element>
+	| CommonChild
+	| Conditional<any, HtmlChild, any>
+	| List<any, HtmlChild>
+
+export const Html: TagMapProxy<HtmlTags, HtmlChild> = defineTags<HtmlTags, HtmlChild>({
+	creator(name) {
+		return document.createElement(name)
 	},
-}) as {
-	[K in HtmlTag]: TagCreator<HtmlTags[K]>
-}
+})

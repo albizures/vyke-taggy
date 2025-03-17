@@ -1,24 +1,12 @@
-import type { ReadSignal } from './signals'
 import { effect } from 'alien-signals'
 import { Conditional, match } from './conditional'
 import { each, List } from './list'
 
-type Child =
-	| TagHandler<Element>
+export type CommonChild =
 	| string
 	| number
 	| undefined
 	| boolean
-	| Conditional<any, any>
-	| List<any>
-
-export type TagChild =
-	| Child
-	| ReadSignal<Child>
-
-export type Props<TTag extends Element> = {
-	[K in keyof TTag]?: TTag[K] | ReadSignal<TTag[K]>
-} & Record<`data-${string}`, string | ReadSignal<string>>
 
 export class Renderer {
 	constructor(
@@ -45,17 +33,12 @@ export function createRenderer(root: HTMLElement): Renderer {
 	return new Renderer(root)
 }
 
-export class TagHandler<TTag extends Element> {
+export class TagHandler<TTag> {
 	constructor(
 		readonly creator: () => TTag,
-		readonly props: Props<TTag> = {},
-		readonly children: Array<TagChild> = [],
+		readonly props: Record<string, unknown> = {},
+		readonly children: Array<unknown> = [],
 	) {}
-}
-
-export type TagCreator<TTag extends Element> = {
-	(props?: Props<TTag>, children?: Array<TagChild>): TagHandler<TTag>
-	(children?: Array<TagChild>): TagHandler<TTag>
 }
 
 const COMMENT_TYPES = {
@@ -84,7 +67,7 @@ function removeNodesBetween(startRef: ChildNode, endRef: ChildNode) {
 /**
  * Build a conditional child
  */
-function buildConditionalChild(tag: Conditional<unknown, any>, propSetter: PropSetter): Array<ChildNode> {
+function buildConditionalChild(tag: Conditional<unknown, unknown, any>, propSetter: PropSetter): Array<ChildNode> {
 	let startRef: ChildNode = createCommentRef(COMMENT_TYPES.CONDITIONAL)
 	let endRef: ChildNode = createCommentRef(COMMENT_TYPES.CONDITIONAL)
 	const $value = match(tag)
@@ -109,7 +92,7 @@ function buildConditionalChild(tag: Conditional<unknown, any>, propSetter: PropS
 /**
  * Build a list of children
  */
-function buildListChild(tag: List<unknown>, propSetter: PropSetter): Array<ChildNode> {
+function buildListChild(tag: List<unknown, unknown>, propSetter: PropSetter): Array<ChildNode> {
 	const startRef = createCommentRef(COMMENT_TYPES.LIST)
 	const endRef = createCommentRef(COMMENT_TYPES.LIST)
 	const children: Array<ChildNode> = []
@@ -133,7 +116,7 @@ function buildListChild(tag: List<unknown>, propSetter: PropSetter): Array<Child
 	return [startRef, ...children, endRef]
 }
 
-function handleSignal(tag: ReadSignal<unknown>, propSetter: PropSetter): Array<ChildNode> {
+function handleSignal(tag: () => unknown, propSetter: PropSetter): Array<ChildNode> {
 	let ref: ChildNode = createCommentRef(COMMENT_TYPES.SIGNAL)
 
 	effect(() => {
@@ -148,7 +131,7 @@ function handleSignal(tag: ReadSignal<unknown>, propSetter: PropSetter): Array<C
 	return [ref]
 }
 
-function buildChild(tag: TagChild, propSetter: PropSetter): Array<ChildNode> {
+function buildChild(tag: unknown, propSetter: PropSetter): Array<ChildNode> {
 	if (tag instanceof TagHandler) {
 		return [buildHandler(tag, propSetter)]
 	}
@@ -158,11 +141,15 @@ function buildChild(tag: TagChild, propSetter: PropSetter): Array<ChildNode> {
 	if (tag instanceof List) {
 		return buildListChild(tag, propSetter)
 	}
-	if (typeof tag === 'function') {
+	if (isSignal(tag)) {
 		return handleSignal(tag, propSetter)
 	}
 
 	return [document.createTextNode(String(tag))]
+}
+
+function isSignal(tag: unknown): tag is () => unknown {
+	return typeof tag === 'function'
 }
 
 export function buildHandler(tag: TagHandler<Element>, setter: PropSetter) {
@@ -241,7 +228,7 @@ function getPropDescriptor(
 
 type AttributesArgs<TElement extends Element> = {
 	element: TElement
-	props: Props<TElement>
+	props: Record<string, unknown>
 	setter: PropSetter
 }
 
@@ -260,8 +247,4 @@ function applyAttributes<TElement extends Element>(args: AttributesArgs<TElement
 			setter(element, propName, value)
 		}
 	}
-}
-
-function isSignal<T>(value: T | unknown): value is ReadSignal<T> {
-	return typeof value === 'function'
 }

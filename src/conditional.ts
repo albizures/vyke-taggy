@@ -1,21 +1,24 @@
 import type { ReadSignal, Signal } from './signals'
-import type { TagChild } from './tag-handler'
 import { computed, pauseTracking, resumeTracking } from 'alien-signals'
 
 type ValueAsserter<TInput, TExpected extends TInput> = (value: TInput) => value is TExpected
 
-type AssertedCase<TInput, TExpected extends TInput> = [
+type AssertedCase<TInput, TExpected extends TInput, TOutput> = [
 	asserter: ValueAsserter<TInput, TExpected>,
-	handler: (value: TExpected) => TagChild,
+	handler: (value: TExpected) => TOutput,
 ]
-type ValueCase<TInput> = [
+type ValueCase<TInput, TOutput> = [
 	value: TInput,
-	handler: (value: TInput) => TagChild,
+	handler: (value: TInput) => TOutput,
 ]
 
-export type Case<TInput, TExpected extends TInput> = AssertedCase<TInput, TExpected> | ValueCase<TInput>
+export type Case<TInput, TExpected extends TInput, TOutput> =
+	| AssertedCase<TInput, TExpected, TOutput>
+	| ValueCase<TInput, TOutput>
 
-export class Conditional<TValue, TCases extends Array<Case<any, any>>> {
+export type InferCaseOutput<TCase> = TCase extends Case<any, any, infer TOutput> ? TOutput : never
+
+export class Conditional<TValue, TOutput, TCases extends Array<Case<any, any, TOutput>>> {
 	constructor(
 		readonly signal: ReadSignal<TValue>,
 		readonly cases: TCases,
@@ -40,19 +43,25 @@ export class Conditional<TValue, TCases extends Array<Case<any, any>>> {
  * ])
  * ```
  */
-export function $when<TValue, TCases extends Array<Case<any, any>>>(
+export function $when<TValue, TCases extends Array<Case<any, any, any>>>(
 	signal: ReadSignal<TValue> | Signal<TValue>,
 	...cases: [...TCases]
-): Conditional<TValue, TCases> {
+): Conditional<TValue, InferCaseOutput<TCases[number]>, TCases> {
 	return new Conditional(signal, cases)
 }
 
-$when.case = <TValue, TExpected extends TValue>(asserter: ValueAsserter<TValue, TExpected>, handler: (value: TExpected) => TagChild) => {
-	return [asserter, handler] as const satisfies AssertedCase<TValue, TExpected>
+$when.case = <TValue, TExpected extends TValue, TOutput>(
+	asserter: ValueAsserter<TValue, TExpected>,
+	handler: (value: TExpected) => TOutput,
+): Case<TValue, TExpected, TOutput> => {
+	return [asserter, handler] as const satisfies AssertedCase<TValue, TExpected, TOutput>
 }
 
-$when.otherwise = <TValue>(handler: () => TagChild): Case<TValue, TValue> => {
-	return [(value: TValue): value is TValue => true, handler] as const satisfies AssertedCase<TValue, TValue>
+$when.otherwise = <TValue, TOutput>(handler: () => TOutput): Case<TValue, TValue, TOutput> => {
+	return [
+		(value: TValue): value is TValue => true,
+		handler,
+	] as const satisfies AssertedCase<TValue, TValue, TOutput>
 }
 
 $when.isString = (value: unknown): value is string => {
@@ -67,7 +76,7 @@ $when.isBoolean = (value: unknown): value is boolean => {
 	return typeof value === 'boolean'
 }
 
-export function match<TValue, TCases extends Array<Case<any, any>>>(conditional: Conditional<TValue, TCases>) {
+export function match<TConditional extends Conditional<any, any, any>>(conditional: TConditional) {
 	return computed(() => {
 		const value = conditional.signal()
 		for (const [caseValue, handler] of conditional.cases) {

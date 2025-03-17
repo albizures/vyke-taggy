@@ -1,11 +1,10 @@
 import type { Signal } from './signals'
-import type { TagChild } from './tag-handler'
 import { computed } from 'alien-signals'
 
-export class List<TItem> {
+export class List<TItem, TOutput> {
 	constructor(
 		readonly items: Signal<Array<TItem>>,
-		readonly renderItem: (item: TItem) => TagChild,
+		readonly renderItem: (item: TItem) => TOutput,
 	) {}
 }
 
@@ -22,17 +21,17 @@ export class List<TItem> {
  * ])
  * ```
  */
-export function $list<TItem>(values: Signal<Array<TItem>>, renderItem: (item: TItem) => TagChild): List<TItem> {
+export function $list<TItem, TOutput>(values: Signal<Array<TItem>>, renderItem: (item: TItem) => TOutput): List<TItem, TOutput> {
 	return new List(values, renderItem)
 }
 
-export function each<TItem>(list: List<TItem>) {
-	const values = new Map<TItem, TagChild>()
+export function each<TItem, TOutput>(list: List<TItem, TOutput>) {
+	const values = new Map<TItem, unknown>()
 
 	return computed(() => {
 		const items = list.items()
 		const stored = new Set(values.keys())
-		const results: Array<TagChild> = []
+		const results: Array<unknown> = []
 
 		for (const item of items) {
 			if (!values.has(item)) {

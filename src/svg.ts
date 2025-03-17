@@ -1,25 +1,24 @@
-import type { Props, TagChild, TagCreator } from './tag-handler'
-import { TagHandler } from './tag-handler'
+import type { Conditional } from './conditional'
+import type { TagMapProxy } from './define-tags'
+import type { List } from './list'
+import type { CommonChild, TagHandler } from './tag-handler'
+import { defineTags } from './define-tags'
 
-export type SvgTags = SVGElementTagNameMap
-export type SvgTag = keyof SvgTags
-
-export function createSvgTag<TTag extends SvgTag>(name: TTag) {
-	return document.createElementNS('http://www.w3.org/2000/svg', name)
+type SvgTags = {
+	[K in keyof SVGElementTagNameMap]: {
+		tag: SVGElementTagNameMap[K]
+		props: Record<string, any>
+	}
 }
 
-export const Svg = new Proxy({}, {
-	get(_, name: SvgTag) {
-		return (propsOrChildren?: Props<SvgTags[SvgTag]> | Array<TagChild>, maybeChildren?: Array<TagChild>) => {
-			const props = Array.isArray(propsOrChildren)
-				? undefined
-				: propsOrChildren
-			const children = Array.isArray(propsOrChildren)
-				? propsOrChildren
-				: maybeChildren
-			return new TagHandler(() => createSvgTag(name), props, children ?? [])
-		}
+type SvgChild =
+	| TagHandler<Element>
+	| CommonChild
+	| Conditional<any, SvgChild, any>
+	| List<any, SvgChild>
+
+export const Svg: TagMapProxy<SvgTags, SvgChild> = defineTags<SvgTags, SvgChild>({
+	creator(name) {
+		return document.createElementNS('http://www.w3.org/2000/svg', name)
 	},
-}) as {
-	[K in SvgTag]: TagCreator<SvgTags[K]>
-}
+})
