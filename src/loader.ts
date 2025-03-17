@@ -24,7 +24,10 @@ export type LoaderSignal<TValue, TDefault = undefined> = ReadSignal<LoaderValue<
 	 * })
 	 * ```
 	 */
-	match: <TOutput>(statuses: LoaderCases<TValue, TOutput, TDefault>, options?: MatchOptions) => Conditional<LoaderStatus, TOutput, Array<Case<LoaderStatus, LoaderStatus, TOutput>>>
+	match: <TLoaderCases extends LoaderCases<TValue, unknown>>(
+		statuses: TLoaderCases,
+		options?: MatchOptions,
+	) => Conditional<LoaderStatus, Array<Case<LoaderStatus, LoaderStatus, LoaderCasesOutput<TLoaderCases>>>>
 
 	/**
 	 * Reload the loader
@@ -109,7 +112,10 @@ export function loadSignal<
 		})
 	})
 
-	loader.match = <TOutput>(statuses: LoaderCases<TValue, TOutput, TDefault>, options: MatchOptions = {}) => {
+	loader.match = <TCases extends LoaderCases<TValue, any>>(
+		statuses: TCases,
+		options: MatchOptions = {},
+	): Conditional<LoaderStatus, Array<Case<LoaderStatus, LoaderStatus, LoaderCasesOutput<TCases>>>> => {
 		return matchLoader(loader, statuses, options)
 	}
 
@@ -120,10 +126,15 @@ export function loadSignal<
 	return loader
 }
 
-type LoaderCases<TValue, TOutput, TDefault = undefined> = {
+type LoaderCasesOutput<TLoaderCases extends LoaderCases<any, any>> =
+	| ReturnType<NonNullable<TLoaderCases['error']>>
+	| ReturnType<NonNullable<TLoaderCases['loaded']>>
+	| ReturnType<NonNullable<TLoaderCases['loading']>>
+
+type LoaderCases<TValue, TOutput> = {
 	loading?: () => TOutput
 	loaded?: ($value: Signal<TValue>) => TOutput
-	error?: ($error: Signal<unknown | TDefault>) => TOutput
+	error?: ($error: Signal<unknown>) => TOutput
 }
 
 function matchLoader<
@@ -132,9 +143,9 @@ function matchLoader<
 	TDefault = undefined,
 >(
 	loader: LoaderSignal<TValue, TDefault>,
-	statuses: LoaderCases<TValue, TOutput, TDefault>,
+	statuses: LoaderCases<TValue, TOutput>,
 	options: MatchOptions = {},
-): Conditional<LoaderStatus, TOutput, Array<Case<LoaderStatus, LoaderStatus, TOutput>>> {
+): Conditional<LoaderStatus, Array<Case<LoaderStatus, LoaderStatus, TOutput>>> {
 	const { minTime = 1000 } = options
 	const $now = signal(Date.now())
 	let targetTime: number | undefined

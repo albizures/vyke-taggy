@@ -67,7 +67,7 @@ function removeNodesBetween(startRef: ChildNode, endRef: ChildNode) {
 /**
  * Build a conditional child
  */
-function buildConditionalChild(tag: Conditional<unknown, unknown, any>, propSetter: PropSetter): Array<ChildNode> {
+function buildConditionalChild(tag: Conditional<unknown, any>, propSetter: PropSetter): Array<ChildNode> {
 	let startRef: ChildNode = createCommentRef(COMMENT_TYPES.CONDITIONAL)
 	let endRef: ChildNode = createCommentRef(COMMENT_TYPES.CONDITIONAL)
 	const $value = match(tag)

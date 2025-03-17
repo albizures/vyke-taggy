@@ -18,7 +18,7 @@ export type Case<TInput, TExpected extends TInput, TOutput> =
 
 export type InferCaseOutput<TCase> = TCase extends Case<any, any, infer TOutput> ? TOutput : never
 
-export class Conditional<TValue, TOutput, TCases extends Array<Case<any, any, TOutput>>> {
+export class Conditional<TValue, TCases extends Array<Case<any, any, any>>> {
 	constructor(
 		readonly signal: ReadSignal<TValue>,
 		readonly cases: TCases,
@@ -46,7 +46,7 @@ export class Conditional<TValue, TOutput, TCases extends Array<Case<any, any, TO
 export function $when<TValue, TCases extends Array<Case<any, any, any>>>(
 	signal: ReadSignal<TValue> | Signal<TValue>,
 	...cases: [...TCases]
-): Conditional<TValue, InferCaseOutput<TCases[number]>, TCases> {
+): Conditional<TValue, TCases> {
 	return new Conditional(signal, cases)
 }
 
@@ -76,7 +76,7 @@ $when.isBoolean = (value: unknown): value is boolean => {
 	return typeof value === 'boolean'
 }
 
-export function match<TConditional extends Conditional<any, any, any>>(conditional: TConditional) {
+export function match<TConditional extends Conditional<any, any>>(conditional: TConditional) {
 	return computed(() => {
 		const value = conditional.signal()
 		for (const [caseValue, handler] of conditional.cases) {

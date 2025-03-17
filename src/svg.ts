@@ -1,4 +1,4 @@
-import type { Conditional } from './conditional'
+import type { Case, Conditional } from './conditional'
 import type { TagMapProxy } from './define-tags'
 import type { List } from './list'
 import type { ReadSignal } from './signals'
@@ -15,7 +15,7 @@ type SvgTags = {
 type Child =
 	| TagHandler<Element>
 	| CommonChild
-	| Conditional<any, Child, any>
+	| Conditional<any, Array<Case<any, any, Child>>>
 	| List<any, Child>
 
 type SvgChild =
