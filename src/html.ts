@@ -18,11 +18,15 @@ type HtmlTags = {
 	}
 }
 
-type HtmlChild =
+type Child =
 	| TagHandler<Element>
 	| CommonChild
-	| Conditional<any, HtmlChild, any>
-	| List<any, HtmlChild>
+	| Conditional<any, Child, any>
+	| List<any, Child>
+
+type HtmlChild =
+	| Child
+	| ReadSignal<Child>
 
 export const Html: TagMapProxy<HtmlTags, HtmlChild> = defineTags<HtmlTags, HtmlChild>({
 	creator(name) {
