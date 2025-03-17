@@ -1,7 +1,7 @@
 {
 	"name": "@vyke/taggy",
 	"type": "module",
-	"version": "0.4.6",
+	"version": "0.4.7",
 	"description": "A simple and small library for creating and manipulating HTML elements in a declarative way.",
 	"author": "Jose Albizures <jose@albizures.com> (https://albizures.com/)",
 	"license": "MIT",
