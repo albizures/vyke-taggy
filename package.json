@@ -29,7 +29,7 @@
 		"build:docs": "tsdocs",
 		"test": "run-s test:integration test:types test:lint test:jsr",
 		"test:use": "knip",
-		"test:lint": "eslint .",
+		"test:lint": "eslint . && astro check",
 		"test:unit": "vitest run",
 		"test:integration": "server-test dev:start 'http://localhost:4321' test:integration:run",
 		"test:integration:run": "cypress run",
@@ -46,6 +46,7 @@
 	},
 	"devDependencies": {
 		"@antfu/eslint-config": "^4.10.1",
+		"@astrojs/check": "^0.9.4",
 		"@vyke/jsr-sync": "^0.0.4",
 		"@vyke/tsdocs": "^0.0.9",
 		"astro": "^5.5.2",
