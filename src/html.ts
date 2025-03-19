@@ -2,20 +2,12 @@ import type { Case, Conditional } from './conditional'
 import type { TagMapProxy } from './define-tags'
 import type { List } from './list'
 import type { ReadSignal } from './signals'
-import type { CommonChild, TagHandler } from './tag-handler'
+import type { TagHandler } from './tag-handler'
+import type { CommonChild, CommonTag } from './types'
 import { defineTags } from './define-tags'
 
 type HtmlTags = {
-	[TTag in keyof HTMLElementTagNameMap]: {
-		tag: HTMLElementTagNameMap[TTag]
-		props:
-			& {
-				[TPropName in keyof HTMLElementTagNameMap[TTag]]?:
-					| HTMLElementTagNameMap[TTag][TPropName]
-					| ReadSignal<HTMLElementTagNameMap[TTag][TPropName]>
-			}
-			& Record<`data-${string}`, string | ReadSignal<string>>
-	}
+	[TTag in keyof HTMLElementTagNameMap]: CommonTag<HTMLElementTagNameMap[TTag]>
 }
 
 type Child =
@@ -24,7 +16,7 @@ type Child =
 	| Conditional<any, Array<Case<any, any, Child>>>
 	| List<any, Child>
 
-type HtmlChild =
+export type HtmlChild =
 	| Child
 	| ReadSignal<Child>
 

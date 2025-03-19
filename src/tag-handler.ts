@@ -2,12 +2,6 @@ import { effect } from 'alien-signals'
 import { Conditional, match } from './conditional'
 import { each, List } from './list'
 
-export type CommonChild =
-	| string
-	| number
-	| undefined
-	| boolean
-
 export class Renderer {
 	constructor(
 		readonly root: HTMLElement,

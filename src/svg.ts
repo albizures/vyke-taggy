@@ -2,14 +2,12 @@ import type { Case, Conditional } from './conditional'
 import type { TagMapProxy } from './define-tags'
 import type { List } from './list'
 import type { ReadSignal } from './signals'
-import type { CommonChild, TagHandler } from './tag-handler'
+import type { TagHandler } from './tag-handler'
+import type { CommonChild, CommonTag } from './types'
 import { defineTags } from './define-tags'
 
 type SvgTags = {
-	[K in keyof SVGElementTagNameMap]: {
-		tag: SVGElementTagNameMap[K]
-		props: Record<string, any>
-	}
+	[K in keyof SVGElementTagNameMap]: CommonTag<SVGElementTagNameMap[K]>
 }
 
 type Child =
@@ -18,7 +16,7 @@ type Child =
 	| Conditional<any, Array<Case<any, any, Child>>>
 	| List<any, Child>
 
-type SvgChild =
+export type SvgChild =
 	| Child
 	| ReadSignal<Child>
 
