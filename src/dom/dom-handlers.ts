@@ -61,7 +61,7 @@ export function propHandler(context: DomPropHandlerContext): true | undefined {
 
 	return true
 }
-export function childHandler(context: DomChildHandlerContext<DomTags>) {
+export function childHandler(context: DomChildHandlerContext<DomTags>): Array<ChildNode> | undefined {
 	const { child } = context
 	if (child instanceof Conditional) {
 		return buildConditionalChild(child, context)
