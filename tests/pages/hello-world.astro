@@ -7,27 +7,42 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { createRenderer, Html } from '../../src'
+import { createDomRoot, Html, Svg } from '../../src/dom'
 import { signal, syncValue } from '../../src/signals'
 
 const { div, h1, input, label } = Html
-
+const { svg, circle } = Svg
 function mount() {
 	document.addEventListener('DOMContentLoaded', () => {
-		const renderer = createRenderer(document.body)
-		renderer.render(HelloWorld())
+		const root = createDomRoot()
+		document.body.append(root.build(HelloWorld()))
 	})
 }
 
 function HelloWorld() {
 	const $name = signal('world')
 
-	return div([
+	return div({ id: 'hello-world' }, [
 		h1(['Hello, ', $name, '!']),
 		label(['Name: ',
 			input({
 				type: 'text',
 				...syncValue($name),
+			}),
+		]),
+		svg({
+			width: 100,
+			height: 100,
+		}, [
+			circle({
+				cx: 50,
+				cy: 50,
+				r: 49,
+				style: {
+					stroke: 'black',
+					strokeWidth: '1px',
+					fill: 'transparent',
+				},
 			}),
 		]),
 	])

@@ -7,15 +7,16 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { $t, createRenderer, Html, loadSignal } from '../../src'
+import { $t, loadSignal } from '../../src'
+import { createDomRoot, Html } from '../../src/dom'
 import { signal } from '../../src/signals'
 
 const { div, button, span } = Html
 
 function mount() {
 	document.addEventListener('DOMContentLoaded', () => {
-		const renderer = createRenderer(document.body)
-		renderer.render(Loading())
+		const root = createDomRoot()
+		document.body.append(root.build(Loading()))
 	})
 }
 

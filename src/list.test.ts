@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Html } from './html'
+import { Html } from './dom/html'
 import { $list, each, List } from './list'
 import { signal } from './signals'
 

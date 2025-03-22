@@ -7,19 +7,20 @@ import Page from '../Page.astro';
 </Page>
 
 <script>
-import { $list, createRenderer, Html } from '../../src'
+import { $list } from '../../src'
+import { createDomRoot, Html } from '../../src/dom'
 import { signal } from '../../src/signals'
 
 const { ul, li, button, div } = Html
 
 function mount() {
 	document.addEventListener('DOMContentLoaded', () => {
-		const renderer = createRenderer(document.body)
-		renderer.render(HelloWorld())
+		const root = createDomRoot()
+		document.body.append(root.build(List()))
 	})
 }
 
-function HelloWorld() {
+function List() {
 	const $numbers = signal([1, 2, 3])
 
 	return div([

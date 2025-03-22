@@ -13,6 +13,13 @@ export type CommonTag<TTag> = {
 	props: CommonProps<TTag>
 }
 
-export type CommonProps<TTag> = Record<`data-${string}`, MaybeReadSignal<string>> & {
-	[TPropName in keyof TTag]?: MaybeReadSignal<TTag[TPropName]>
-}
+export type CommonProps<TTag> =
+	& Record<`data-${string}`, MaybeReadSignal<string>>
+	& Omit<{
+		[TPropName in keyof TTag]?: TTag[TPropName] extends SVGAnimatedLength
+			? MaybeReadSignal<number>
+			: MaybeReadSignal<TTag[TPropName]>
+	}, 'style'>
+	& {
+		style?: MaybeReadSignal<Record<string, string>> | MaybeReadSignal<string>
+	}

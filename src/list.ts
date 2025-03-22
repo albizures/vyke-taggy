@@ -1,4 +1,4 @@
-import type { Signal } from './signals'
+import type { ReadSignal, Signal } from './signals'
 import { computed } from 'alien-signals'
 
 export class List<TItem, TOutput> {
@@ -25,13 +25,13 @@ export function $list<TItem, TOutput>(values: Signal<Array<TItem>>, renderItem: 
 	return new List(values, renderItem)
 }
 
-export function each<TItem, TOutput>(list: List<TItem, TOutput>) {
-	const values = new Map<TItem, unknown>()
+export function each<TItem, TOutput>(list: List<TItem, TOutput>): ReadSignal<Array<TOutput>> {
+	const values = new Map<TItem, TOutput>()
 
 	return computed(() => {
 		const items = list.items()
 		const stored = new Set(values.keys())
-		const results: Array<unknown> = []
+		const results: Array<TOutput> = []
 
 		for (const item of items) {
 			if (!values.has(item)) {

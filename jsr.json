@@ -3,7 +3,8 @@
 	"version": "0.4.8",
 	"exports": {
 		".": "./src/index.ts",
-		"./signals": "./src/signals/index.ts"
+		"./signals": "./src/signals/index.ts",
+		"./dom": "./src/dom/index.ts"
 	},
 	"license": "MIT"
 }

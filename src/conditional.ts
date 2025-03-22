@@ -76,7 +76,7 @@ $when.isBoolean = (value: unknown): value is boolean => {
 	return typeof value === 'boolean'
 }
 
-export function match<TConditional extends Conditional<any, any>>(conditional: TConditional) {
+export function match<TConditional extends Conditional<any, any>>(conditional: TConditional): ReadSignal<InferCaseOutput<TConditional['cases'][number]>> {
 	return computed(() => {
 		const value = conditional.signal()
 		for (const [caseValue, handler] of conditional.cases) {

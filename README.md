@@ -44,12 +44,12 @@ renderer.render(HelloWorld())
 
 ## API
 
-### createRenderer
+### createRoot
 
 Create a renderer with given root element
 
 ```ts
-const renderer = createRenderer(document.body)
+const renderer = createRenderer()
 renderer.render(App())
 ```
 
