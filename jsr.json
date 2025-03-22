@@ -1,6 +1,6 @@
 {
 	"name": "@vyke/taggy",
-	"version": "0.4.8",
+	"version": "0.5.0",
 	"exports": {
 		".": "./src/index.ts",
 		"./dom": "./src/dom/index.ts",
